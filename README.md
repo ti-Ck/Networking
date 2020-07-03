@@ -1,2 +1,2 @@
 # Firepower
-Scripts for managing Cisco Firepower API
+Scripts I have written for managing Cisco Firepower API
