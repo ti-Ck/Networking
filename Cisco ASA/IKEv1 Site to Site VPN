@@ -1,0 +1,50 @@
+Configuration for an IKEv1 site to site VPN for a Cisco ASA
+- Tested on ASA 8.4(2)
+
+!
+!! Create the Tunnel Group
+!
+tunnel-group <REMOTE PEER IP ADDRESS> type ipsec-l2l
+tunnel-group <REMOTE PEER IP ADDRESS> ipsec-attributes
+ ikev1 pre-shared-key <PSK>
+!
+!! Create the IKEv1 Transform Set
+!
+crypto ipsec ikev1 transform-set SET1 esp-aes esp-sha-hmac
+!
+!! Create an IKEv1 Policy
+!
+crypto ikev1 policy 1
+ authentication pre-share
+ encryption aes
+ hash sha
+ group 2
+ lifetime 86400
+!
+!! Enable IKEv1 on the Outside Interface
+!
+crypto ikev1 enable outside
+!
+!! Create an ACL that defines the interesting traffic to be sent across the tunnel
+!
+access-list S2S-ACL-1 extended permit ip object <SOURCE> object <DESTINATION>
+access-list S2S-ACL-1 extended permit icmp object <SOURCE> object <DESTINATION>
+!
+!! Create the Crypto Map
+!
+crypto map outside_map 10 match address S2S-ACL-1
+crypto map outside_map 10 set peer <REMOTE PEER IP ADDRESS>
+crypto map outside_map 10 set ikev1 transform-set SET1
+crypto map outside_map 10 set pfs
+!
+!! Bind the Crypto Map to the Outside Interface
+!
+crypto map outside_map interface outside
+!
+!! Useful Show Commands
+!
+show crypto ikev1 sa
+show crypto ikev1 stats
+show crypto ipsec sa
+show crypto ipsec stats
+show crypto isakmp sa
