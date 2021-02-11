@@ -1,0 +1,57 @@
+Configuration for an IKEv2 site to site VPN on a Cisco ASA
+- Tested on ASA 8.4(2)
+
+!
+!! Create the Tunnel Group
+!
+tunnel-group <REMOTE PEER IP ADDRESS> type ipsec-l2l
+tunnel-group <REMOTE PEER IP ADDRESS> ipsec-attributes
+ ikev2 remote-authentication pre-shared-key <REMOTE PSK>
+ ikev2 local-authentication pre-shared-key <LOCAL PSK>
+!
+!! Create the IKEv2 Transform Set
+!
+crypto ipsec ikev2 ipsec-proposal <TRANSFORM SET NAME>
+ protocol esp integrity sha-1
+ protocol esp encryption aes-256
+!
+!! Create an IKEv2 Policy
+!
+crypto ikev2 policy 1
+ encryption aes-256
+ integrity sha256
+ group 5
+ prf sha256
+ lifetime seconds 86400
+!
+!! Enable IKEv2 on the Outside Interface
+!
+crypto ikev2 enable outside
+!
+!! Create an ACL that defines the interesting traffic to be sent across the tunnel
+!
+access-list S2S-ACL-1 extended permit ip object <SOURCE> object <DESTINATION>
+access-list S2S-ACL-1 extended permit icmp object <SOURCE> object <DESTINATION>
+!
+!! Create a 'No-NAT' Rule
+!
+nat (inside,outside) source static <SOURCE> <SOURCE> destination static <DESTINATION> <DESTINATION> no-proxy-arp route-lookup
+!
+!! Create the Crypto Map
+!
+crypto map outside_map 10 match address S2S-ACL-1
+crypto map outside_map 10 set peer <REMOTE PEER IP ADDRESS>
+crypto map outside_map 10 set ikev2 ipsec-proposal <TRANSFORM SET NAME>
+crypto map outside_map 10 set pfs
+!
+!! Bind the Crypto Map to the Outside Interface
+!
+crypto map outside_map interface outside
+!
+!! Useful Show Commands
+!
+show crypto ikev2 sa
+show crypto ikev2 stats
+show crypto ipsec sa
+show crypto ipsec stats
+show crypto isakmp sa
