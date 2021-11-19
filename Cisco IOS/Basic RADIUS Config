@@ -19,4 +19,5 @@ aaa group server radius RADIUS-SERVERS
  server name three
 !
 aaa authentication login default group RADIUS-SERVERS local
+aaa authorization exec default group RADIUS-SERVERS
 !
