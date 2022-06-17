@@ -1,0 +1,36 @@
+##
+## Basic Juiper SRX Setup
+##
+set system host-name SRX
+set system root-authentication plain-text-password <root password>
+#
+set interfaces ge-0/0/0 description untrust
+set interfaces ge-0/0/0 unit 0 family inet address 40.0.0.2/30
+#
+set interfaces ge-0/0/1 description trust
+set interfaces ge-0/0/1 unit 0 family inet address 172.16.10.1/24
+#
+set routing-options static route 0.0.0.0/0 next-hop 40.0.0.1
+#
+set security zones security-zone trust host-inbound-traffic system-services all
+set security zones security-zone trust host-inbound-traffic protocols all
+set security zones security-zone trust interfaces ge-0/0/1
+#
+set security zones security-zone untrust host-inbound-traffic system-services ping
+set security zones security-zone untrust interfaces ge-0/0/0.0
+#
+set security policies from-zone trust to-zone trust policy default-permit match source-address any
+set security policies from-zone trust to-zone trust policy default-permit match destination-address any
+set security policies from-zone trust to-zone trust policy default-permit match application any
+set security policies from-zone trust to-zone trust policy default-permit then permit
+#
+set security policies from-zone trust to-zone untrust policy default-permit match source-address any
+set security policies from-zone trust to-zone untrust policy default-permit match destination-address any
+set security policies from-zone trust to-zone untrust policy default-permit match application any
+set security policies from-zone trust to-zone untrust policy default-permit then permit
+#
+set security nat source rule-set trust-to-untrust from zone trust
+set security nat source rule-set trust-to-untrust to zone untrust
+set security nat source rule-set trust-to-untrust rule PAT match source-address 172.16.10.0/24
+set security nat source rule-set trust-to-untrust rule PAT match destination-address 0.0.0.0/0
+set security nat source rule-set trust-to-untrust rule PAT then source-nat interface
