@@ -1,0 +1,17 @@
+# IOL (IOS ON LINUX)
+!
+tacacs server one
+ address ipv4 10.1.100.10
+ key cisco123!
+tacacs server two
+ address ipv4 10.2.100.10
+ key cisco123!
+!
+tacacs server three
+ address ipv4 10.3.100.10
+ key cisco123!
+!
+aaa new-model
+aaa authentication login default group tacacs+ local
+aaa authorization exec default group tacacs+ local
+!
